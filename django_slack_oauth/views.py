@@ -50,7 +50,9 @@ class SlackAuthView(RedirectView):
         if not code:
             return self.auth_request()
 
+        print('Pre Validate', request.session.items())
         self.validate_state(request.GET.get('state'))
+        print('Post Validate', request.session.items())
 
         access_content = self.oauth_access(code)
         if not access_content.status_code == 200:
@@ -98,15 +100,19 @@ class SlackAuthView(RedirectView):
         return requests.get(settings.SLACK_OAUTH_ACCESS_URL, params=params)
 
     def validate_state(self, state):
+        print('Pre validate_state', self.request.session.items())
         state_before = self.request.session.pop('state')
+        print('Post validate_state', self.request.session.items())
         if state_before != state:
             raise StateMismatch('State mismatch upon authorization completion.'
                                 ' Try new request.')
         return True
 
     def store_state(self):
+        print('Pre store_state', self.request.session.items())
         state = str(uuid.uuid4())[:6]
         self.request.session['state'] = state
+        print('Post store_state', self.request.session.items())
         return state
 
     def error_message(self, msg=text_error):
